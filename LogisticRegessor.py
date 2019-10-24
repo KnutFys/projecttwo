@@ -9,19 +9,18 @@ Created on Wed Oct 16 12:36:38 2019
 import numpy as np
 from time import time
 from sklearn import datasets
-from sklearn import linear_model
-
-import matplotlib.pyplot as plt
+from sklearn import linear_model #Test versus sklearn??
+import matplotlib.pyplot as plt #Do I need any ploting??
 
 
 
 class regressor:
 
-    def __init__(self,X,y,eta=0.001):
+    def __init__(self,X,y,eta=0.035):
         #Sets time limit for gradient decent
         self.time_limit = 3
         #Sets the iterations used in gradient decent
-        self.iterations = 50
+        self.iterations = 100
         #Set the learning rate
         self.eta = eta
         
@@ -43,10 +42,11 @@ class regressor:
         self.classify()
         
     def gradient(self,p):
-        #The gradient calculated from 
-        return -(self.X.T@(self.data-p))
+        #The gradient calculated from negative log-likelyhood cost function
+        return -(self.X.T@(self.data-p))#/len(self.data)
     
     def hessian(self,p):
+        #Hessian calculated from negative log-likelyhood cost function
         W = np.eye(len(p))@(p-p^2)
         return self.X.T@W@self.X
     
@@ -59,6 +59,8 @@ class regressor:
             self.counter = self.counter+i
             self.beta -= self.eta*self.gradient(self.sigmoid(self.X@self.beta))
             if (time()-t0) > self.time_limit:
+                #Limits the time allowed for gradient decent dependent
+                #on the time_limit attribute
                 print("Time limit reached.")
                 print("Running time: {}".format(time()-t0))
                 print("Gradient decent might not have converged")
@@ -79,7 +81,7 @@ class regressor:
     def evaluate(self):
         #Counts the number of correct predictions
         correct = 0
-        #Sets proper length for 
+        #Sets proper length for classification attributes
         self.training_classification = np.zeros(len(self.data))
         self.classification = np.zeros(len(self.test_data))
         
@@ -98,14 +100,16 @@ class regressor:
         for pred,val in zip(self.training_classification,self.data):
             #print("Guess {} :: True {}".format(pred,val))
             if (pred == val): correct = correct + 1
-        print("Testing: Got {} out of {}".format(correct,len(self.data)))
+        print("Training: Got {} out of {}".format(correct,len(self.data)))
         print("Training accuracy {:03.2f}".format(correct/len(self.data))) 
 
-
+def normalize(x):
+    return (x-np.amin(x))/(np.amax(x)-np.amin(x))
 #iris  = datasets.load_iris()
 
 def moon_test():
     #Simple test scikitlearn to
+    print("Testing regressor on generated moon-dataset:")
     n = 1000
     X, y = datasets.make_moons(2*n, noise=0.2)
     #Create regressor instance and set training data
@@ -123,8 +127,38 @@ def moon_test():
     print("Result after gradient decent:")
     t.evaluate()   
 
+def iris_test():
+    import sklearn.datasets
+    from sklearn.model_selection import train_test_split
+    import pandas as pd
+    #Testing regressor using Iris dataset for 2 classes
+    iris = sklearn.datasets.load_iris()
+    iris_df = pd.DataFrame(iris.data, columns = iris.feature_names)
+    y = iris.target
+    intercept = np.ones(len(y))
+    columns = iris_df.columns    
+    X = np.c_[intercept,iris_df[columns]]
+    X = normalize(X)
+    X = X[:100,:]
+    y = y[:100]
+    X_train , X_test, y_train, y_test = train_test_split(X,y,test_size=0.33)    
+    r2 = regressor(X_train,y_train)
+    r2.test_data = y_test
+    r2.test_X = X_test
+    r2.iterations = 100
+    print("Testing regressor on Iris dataset. Iterations: {}".format(
+            r2.iterations))
+    print("Random guess:")
+    r2.classify()
+    r2.evaluate()
+    r2.gradient_decent()
+    print("After training guess:")
+    r2.classify()
+    r2.evaluate()
+    
 def main():
     moon_test()
+    iris_test()
 
 if __name__ == "__main__":
     main()
