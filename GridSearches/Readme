@@ -1,0 +1,5 @@
+Gridsearchfullbalanced was performed on a manipulated dataset where both catgory wer equaly represented
+GridsearchFullUnBalanced was performed on the standard dataset
+GridsearchFullUnbalancedSmooshed was performed on standard dataset, but using smaller weights(divided by sqrt of incoming neurons)
+
+NNgridsearches are old and not used
