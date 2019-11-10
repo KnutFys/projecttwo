@@ -9,7 +9,6 @@ import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
 from Network import network
-import matplotlib.pyplot as plt
 from time import time
 
 #Set path for datafiles
@@ -73,14 +72,17 @@ def grid_search(X_train,X_test,y_train,y_test,learning_rates,lambdas,hidden,
                         input_neurons = len(X_train[:,0])  
                         print(input_neurons)
                         output_neurons = 1
-                        net = network((input_neurons,h,output_neurons))                
+                        net = network((input_neurons,h,output_neurons),
+                                      smoosh_weights=False)                
                         batch_size = sizes
                         #Set number of training epochs
                         number_of_epochs = eps
                         #set the training rate
                         net.learning_rate = eta
                         #Set regularization
-                        net.L2 = lmd   
+                        net.L2 = lmd 
+                        #Set biases to 1
+                        #net.set_bias()
                         print("LR: {} Hidden:{} L2:{}".format(eta,h,lmd))
                         for e in range(number_of_epochs):
                             #Keep track of raining progress and time usage
@@ -249,8 +251,8 @@ def train_optimized(X_train,y_train):
     #Initialize network
     input_neurons = len(X_train[:,0]) 
     output_neurons = 1
-    net = network((input_neurons,100,output_neurons))                
-    batch_size = 10
+    net = network((input_neurons,100,output_neurons),smoosh_weights=False)                
+    batch_size = 5
     #Test if setting biases to 1 helps
     #net.set_bias()
     #Set number of training epochs
@@ -293,19 +295,21 @@ def train_optimized(X_train,y_train):
 #set argument clean=True
 df = load_taiwan(clean=True) 
 columns = df.columns
+'''
 #Create balanced training data
 X,y,X_train,X_test,X_validate, y_train,y_test,y_validate = make_data(
         df,balanced=True)
 #Train a network using balanced data
 net_b = train_optimized(X_train,y_train)
 metrics(net_b,roc=True)
+'''
 #Use unbalanced data to train a network
 X,y,X_train,X_test,X_validate, y_train,y_test,y_validate  = make_data(df)
-#Transpose data matrices to accomodate network
+
 net = train_optimized(X_train,y_train)
 metrics(net,roc=True)
 #Plot results
-
+'''
 ax = net_b.history.plot(x="Epochs",y="ACC")
 net.history.plot(ax=ax,x="Epochs",y="ACC")
 ax.legend(["Balanced","Standard"])
@@ -318,7 +322,8 @@ ax2.legend(["Balanced","Standard"])
 fig2 = ax2.get_figure()
 fig2.savefig("BaccvEpoch.png")
 '''
+'''
 #Run gridsearch
 gz = optimize_taiwan(X_train,X_test,y_train,y_test)
-gz.to_excel("GridSearchFullUnBalancedSmooshed.xlsx")
+gz.to_excel("GridSearchFullUnBalanced2.xlsx")
 '''

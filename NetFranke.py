@@ -6,8 +6,6 @@ Created on Fri Nov  8 00:22:58 2019
 """
 import numpy as np
 from time import time
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 import pandas as pd
 from Network import network
 t0 = time()
@@ -74,6 +72,10 @@ def grid_search(learning_rates,lambdas,hidden,n_epochs=[5],b_sizes=[10]):
     batch_sizes = list()
     #Create time stamp to track calculation times
     t0 = time()
+    #To keep track of progress
+    counter = 0
+    goal = len(learning_rates)*len(lambdas)*len(hidden)*len(n_epochs)*len(
+            b_sizes)
     for eta in learning_rates:
         for lmd in lambdas:
             for h in hidden: 
@@ -82,7 +84,7 @@ def grid_search(learning_rates,lambdas,hidden,n_epochs=[5],b_sizes=[10]):
                         #Initialize network
                         input_neurons = len(X[0,:])    
                         output_neurons = 1
-                        net = network((input_neurons,h,100,output_neurons))
+                        net = network((input_neurons,h,output_neurons))
                         net.cost_function = "square"
                         net.fit_function = True
                         batch_size = sizes
@@ -91,12 +93,12 @@ def grid_search(learning_rates,lambdas,hidden,n_epochs=[5],b_sizes=[10]):
                         #set the training rate
                         net.learning_rate = eta
                         #Set regularization
-                        net.L2 = lmd   
-                        print("LR: {} Hidden:{} L2:{}".format(eta,h,lmd))
+                        net.L2 = lmd
+                        counter += 1
+                        #Keep track of raining progress and time usage
+                        print("\rRunning time: {:.1f} Iteration: {}/{}".format(
+                                time()-t0,counter,goal),end="",flush=True)
                         for e in range(number_of_epochs):
-                            #Keep track of raining progress and time usage
-                            print("\rRunning time after {} epoch: {}".format(
-                                    e,time()-t0),end="",flush=True)
                             #Create random index vector
                             k = net.make_batch_index(len(X_train[0,:]))
                             #Calculate number of batches and loop through
@@ -126,11 +128,11 @@ def optimize_franke():
     #Calls the grid search function with  sets of hyperparameters
     #and returns a dataframe containing R2/MSE values for 
     #All combinations
-    learning_rates = np.logspace(-1,0,2)
-    L2 = np.logspace(-5,-1,2)
+    learning_rates = np.logspace(-3,0,4)
+    L2 = np.logspace(-5,-1,5)
     hidden = [50,100]
-    epochs =[50]
-    batch_sizes = [50]
+    epochs =[5,10,50]
+    batch_sizes = [5,10]
     hope = grid_search(learning_rates,L2,hidden,n_epochs=epochs,
                        b_sizes=batch_sizes)
     return hope
@@ -142,15 +144,15 @@ def fit_franke():
     #Initialize network
     input_neurons = len(X2[0,:])    
     output_neurons = 1
-    net = network((input_neurons,50,100,output_neurons))
+    net = network((input_neurons,100,output_neurons))
     net.cost_function = "square"
     net.fit_function = True
     #Set batch size
-    batch_size = 10
+    batch_size = 5
     #Set number of training epochs
     number_of_epochs = 500
     #set the training rate
-    net.learning_rate = 0.05
+    net.learning_rate = 1
     #Set regularization
     net.L2 = 0
     
@@ -208,8 +210,14 @@ true2 = np.ravel(z)
 X2 = design_matrix(np.ravel(x2),np.ravel(y2))
 
 def main():
-    #Run test classifying handwritten digits
-    print("Missing")
-
+    df = fit_franke()
+    ax = df.plot(x="Number epochs",y="MSE")
+    fig = ax.get_figure()
+    fig.savefig("Frankemse.png")
+    ax2 = df.plot(x="Number epochs",y="R2")
+    fig2 = ax2.get_figure()
+    fig2.savefig("FrankeR2.png")
+    print("MSE: ",df["MSE"].iloc[-1])
+    print("MSE: ",df["R2"].iloc[-1])
 if __name__ == "__main__":
     main()
