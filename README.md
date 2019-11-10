@@ -2,7 +2,7 @@
 
 Hello
 
-The pdf file is the main report.
+The pdf file project2 is the main report.
 
 The LogisticRegressor.py is the script that actualy performs logistic regression and is used by LogRegTaiwan.py. When run as main it
 performs unit test on some small data sets
